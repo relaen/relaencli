@@ -2,7 +2,9 @@ import { IConfig,IRelation, IColumn } from "./types";
 import { Util } from "./util";
 import { BaseGenerator } from "./basegenerator";
 
-
+/**
+ * mysql 生成器
+ */
 class MysqlGenerator extends BaseGenerator{
     
     constructor(config:IConfig){
@@ -17,6 +19,7 @@ class MysqlGenerator extends BaseGenerator{
     
     /**
      * 获取表名数组
+     * @param conn  数据库连接对象
      */
     async genTables(conn:any){
         await this.changeDb(conn,this.config.database);
@@ -73,8 +76,9 @@ class MysqlGenerator extends BaseGenerator{
      * @param entityName 
      */
     async genRelations(conn:any){
+        //切换到information系统数据库
         await this.changeDb(conn,"information_schema");
-
+        //获取外键信息
         let sql:string = "select constraint_name,table_name,column_name,referenced_table_name,referenced_column_name from key_column_usage "+
             "where referenced_column_name is not null and table_schema='"+ this.config.database + "'";
         let results:Array<any> = await new Promise((resolve,reject)=>{
@@ -141,15 +145,15 @@ class MysqlGenerator extends BaseGenerator{
             }
         }
         this.relations = relArr;
+        //切换回原数据库
         await this.changeDb(conn,this.config.database);
     }
-
-
     
 
     /**
      * 切换数据库
-     * @param db 数据库名
+     * @param conn  数据库连接对象
+     * @param db    数据库名
      */
     async changeDb(conn:any,db:string){
         await new Promise((resolve,reject)=>{

@@ -1,19 +1,31 @@
 import { IConfig, IRelation, IColumn } from "./types";
 import { Util } from "./util";
 
+/**
+ * 基础生成器
+ */
 class BaseGenerator{
-    config:IConfig;
-    tables:Map<string,string>;
-    relations:IRelation[];
-    typeMap:object;
     /**
-     * 字段映射
+     * 数据库配置，从config.json中获取
      */
-    fieldTypes:any;
-
+    config:IConfig;
+    /**
+     * 表map {实体名:表名}
+     */
+    tables:Map<string,string>;
+    /**
+     * 外键关联数组
+     */
+    relations:IRelation[];
+    /**
+     * 数据库类型与js,ts类型关系
+     */
+    typeMap:object;
+    
     constructor(config:IConfig){
         this.config = config;
         this.tables = new Map();
+        //读取数据库类型对象
         let ds = require('fs').readFileSync('./config/' + this.config.product + '.json');
         this.typeMap = JSON.parse(ds); 
     }
@@ -24,7 +36,7 @@ class BaseGenerator{
     async getConn(){}
 
     /**
-     * 创建
+     * 创建所有实体
      */
     async gen(){
         const pathMdl = require('path');
@@ -38,8 +50,11 @@ class BaseGenerator{
         }
 
         let conn = await this.getConn();
+        //生成实体，表映射
         await this.genTables(conn);
+        //生成外键关系
         await this.genRelations(conn);
+        //生成并写实体文件
         for(let key of this.tables.keys()){
             let str = await this.genEntity(conn,key);
             fsMdl.writeFileSync(pathMdl.resolve(path,key.toLowerCase() + '.ts'),str);
@@ -47,7 +62,8 @@ class BaseGenerator{
     }
     
     /**
-     * 获取表名数组
+     * 生成实体,表名map
+     * @param conn          数据库连接对象
      */
     async genTables(conn:any){}
     
@@ -62,8 +78,8 @@ class BaseGenerator{
     }
 
     /**
-     * 处理关系
-     * @param entityName 
+     * 生成外键关系
+     * @param conn          数据库连接对象
      */
     async genRelations(conn:any){}
 
@@ -163,25 +179,26 @@ class BaseGenerator{
                 }
             }
         }
-
+        //实体结束
         entityArr.push("}");
-
+        //添加空行
         entityArr.unshift("");
         //插入import entities
         for(let i=importEntities.length-1;i>=0;i--){
             entityArr.unshift("import {" + importEntities[i] + "} from './" + importEntities[i].toLowerCase() + "'"); 
         }
         entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
-        
         return entityArr.join(Util.getLineChar());
     }
 
     /**
-     * 生成表名或字段名
+     * 生成实体名或字段属性名
+     * @remarks         实体名为每个单词首字母大写，字段属性名为驼峰标识
      * @param name      源名
      * @param sp        分隔符
      * @param st        开始段
      * @param stUpcase  大写开始序号
+     * @returns         生成的实体或字段属性名
      */
     genName(name:string,sp:string,st:number,stUpcase:number):string{
         let arrNames = [];
@@ -203,6 +220,7 @@ class BaseGenerator{
     /**
      * 通过tblname获取entityname
      * @param tblName   表名
+     * @returns         实体名
      */
     getEntityByTbl(tblName:string):string{
         for(let o of this.tables){
@@ -212,6 +230,12 @@ class BaseGenerator{
         }
     }
 
+    /**
+     * 获取字段对应关系
+     * @param entity    实体名
+     * @param column    字段名
+     * @returns         关系对象
+     */
     getRelation(entity:string,column:string):IRelation{
         return this.relations.find(item=>{
             return item.entity === entity && item.column === column;
