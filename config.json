@@ -1,0 +1,16 @@
+{
+    "product":"mysql",
+    "options":{
+        "host":"localhost",
+        "port":3306,
+        "user":"root",
+        "password":"field",
+        "connectionLimit":10
+    },
+    "database":"tunnel",
+    "output":"out",
+    "tableSplit":"_",
+    "tableStart":1,
+    "columnSplit":"_",
+    "columnStart":0
+}

@@ -1,0 +1,7 @@
+/.git/
+/.vscode/
+/node_modules/
+.gitignore
+.npmignore
+.DS_Store
+index.d.ts
