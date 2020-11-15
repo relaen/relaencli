@@ -79,7 +79,8 @@ class MysqlGenerator extends BaseGenerator{
         //切换到information系统数据库
         await this.changeDb(conn,"information_schema");
         //获取外键信息
-        let sql:string = "select constraint_name,table_name,column_name,referenced_table_name,referenced_column_name from key_column_usage "+
+        let sql:string = "select constraint_name as constraintName,table_name as tableName,column_name as columnName," +
+            "referenced_table_name as refTableName,referenced_column_name as refColumnName from key_column_usage "+
             "where referenced_column_name is not null and table_schema='"+ this.config.database + "'";
         let results:Array<any> = await new Promise((resolve,reject)=>{
             conn.query(sql,
@@ -93,9 +94,8 @@ class MysqlGenerator extends BaseGenerator{
         let relArr:IRelation[] = [];
         for(let r of results){
             //外键delete和update规则
-            let constraintName:string = r.constraint_name;
-            sql = "select update_rule,delete_rule from referential_constraints "+
-            "where UNIQUE_CONSTRAINT_SCHEMA='" + this.config.database + "' and CONSTRAINT_NAME='" + constraintName + "'";
+            sql = "select update_rule as updateRule,delete_rule as deleteRule from referential_constraints "+
+            "where UNIQUE_CONSTRAINT_SCHEMA='" + this.config.database + "' and CONSTRAINT_NAME='" + r.constraintName + "'";
             let results1:Array<any> = await new Promise((resolve,reject)=>{
                 conn.query(sql,
                 (error,results,fields)=>{
@@ -108,43 +108,43 @@ class MysqlGenerator extends BaseGenerator{
             if(results1.length>0){
                 let r1 = results1[0];
                 relArr.push({
-                    column:r.column_name, //字段名
-                    refColumn:r.referenced_column_name,//引用字段名
-                    delete:Util.getConstraintRule(r1.delete_rule),
-                    update:Util.getConstraintRule(r1.update_rule),
-                    entity:this.getEntityByTbl(r.table_name),
-                    refEntity:this.getEntityByTbl(r.referenced_table_name)
+                    column:r.columnName, //字段名
+                    refColumn:r.refColumnName,//引用字段名
+                    delete:Util.getConstraintRule(r1.deleteRule),
+                    update:Util.getConstraintRule(r1.updateRule),
+                    entity:this.getEntityByTbl(r.tableName),
+                    refEntity:this.getEntityByTbl(r.refTableName)
                 });
             }
         }
+        this.handleRelation(relArr);
+        // let map:Map<string,IRelation[]> = new Map();
+        // //1 按ref entity归类
+        // for(let o of relArr){
+        //     let key = o.refEntity + ',' + o.entity;
+        //     if(!map.has(key)){
+        //         map.set(key,[o]);
+        //     }else{
+        //         map.get(key).push(o);
+        //     }
+        // }
 
-        let map:Map<string,IRelation[]> = new Map();
-        //1 按ref entity归类
-        for(let o of relArr){
-            let key = o.refEntity + ',' + o.entity;
-            if(!map.has(key)){
-                map.set(key,[o]);
-            }else{
-                map.get(key).push(o);
-            }
-        }
-
-        //2 设置被引用名
-        for(let o of map){
-            if(o[1].length>1){
-                for(let o1 of o[1]){
-                    let cn:string = this.genName(o1.column,this.config.columnSplit,this.config.columnStart,0);
-                    //many to one 引用名
-                    o1.refName = o1.refEntity.substr(0,1).toLowerCase() + o1.refEntity.substr(1) + 'For' + cn;
-                    //one to many mapped name
-                    o1.referedName = o1.entity.substr(0,1).toLowerCase() + o1.entity.substr(1) + 'For' + cn + 's';
-                }
-            }else{
-                o[1][0].refName = o[1][0].refEntity.substr(0,1).toLowerCase() + o[1][0].refEntity.substr(1);
-                o[1][0].referedName = o[1][0].entity.substr(0,1).toLowerCase() + o[1][0].entity.substr(1) + 's';
-            }
-        }
-        this.relations = relArr;
+        // //2 设置被引用名
+        // for(let o of map){
+        //     if(o[1].length>1){
+        //         for(let o1 of o[1]){
+        //             let cn:string = this.genName(o1.column,this.config.columnSplit,this.config.columnStart,0);
+        //             //many to one 引用名
+        //             o1.refName = o1.refEntity.substr(0,1).toLowerCase() + o1.refEntity.substr(1) + 'For' + cn;
+        //             //one to many mapped name
+        //             o1.referedName = o1.entity.substr(0,1).toLowerCase() + o1.entity.substr(1) + 'For' + cn + 's';
+        //         }
+        //     }else{
+        //         o[1][0].refName = o[1][0].refEntity.substr(0,1).toLowerCase() + o[1][0].refEntity.substr(1);
+        //         o[1][0].referedName = o[1][0].entity.substr(0,1).toLowerCase() + o[1][0].entity.substr(1) + 's';
+        //     }
+        // }
+        // this.relations = relArr;
         //切换回原数据库
         await this.changeDb(conn,this.config.database);
     }

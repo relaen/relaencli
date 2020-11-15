@@ -92,7 +92,8 @@ class BaseGenerator{
         
         //引入relaen对象
         let relaenArr:string[] = ['BaseEntity','Entity','Column'];
-        
+        //设置get和set的字段数组
+        let getterFieldArr:object[] = [];
         let entityArr:string[] = [];
         entityArr.push("@Entity(\"" + tn + "\",'"+ this.config.database +"')");
         entityArr.push("export class " + entityName + " extends BaseEntity{");
@@ -136,9 +137,9 @@ class BaseGenerator{
                 if(!relaenArr.includes('JoinColumn')){
                     relaenArr.push('JoinColumn');
                 }
-                entityArr.push("\t@ManyToOne({entity:" + relObj.entity + ",lazyFetch:true})");
-                entityArr.push("\t@JoinColumn({name:'" + r.field + "',refName:'" + relObj.column + "'})");
-                fn = relObj.refName;
+                entityArr.push("\t@ManyToOne({entity:" + relObj.refEntity + ",eager:false})");
+                entityArr.push("\t@JoinColumn({name:'" + r.field + "',refName:'" + relObj.refColumn + "'})");
+                fn = relObj.refName1;
             }else{
                 entityArr.push("\t@Column({");
                 let colArr:string[] = [];
@@ -152,7 +153,10 @@ class BaseGenerator{
                 entityArr.push("\t})");
                 fn = this.genName(r.field,this.config.columnSplit,this.config.columnStart,1);
             }
-            entityArr.push("\t" + fn + ":" + type + ";");
+            //加入getter数组
+            getterFieldArr.push({fn:fn,type:type});
+
+            entityArr.push("\tprivate " + fn + ":" + type + ";");
             //加空白行
             entityArr.push("");
         }
@@ -168,16 +172,36 @@ class BaseGenerator{
                     relaenArr.push('EFkConstraint');
                 }
                 for(let a of arr){
-                    entityArr.push("\t@OneToMany({entity:'" + a.entity + "',onDelete:EFkConstaint." + 
-                        a.delete + ",onUpdate:EFkConstraint." + a.update + ",mappedBy:'" + a.refName + "'" +
-                        ",lazyFetch:true})");
-                    entityArr.push("\t" + a.referedName + ':Array<' + a.entity + ">;");
+                    entityArr.push("\t@OneToMany({entity:" + a.entity + ",onDelete:EFkConstraint." + 
+                        a.delete + ",onUpdate:EFkConstraint." + a.update + ",mappedBy:'" + a.refName1 + "'" +
+                        ",eager:false})");
+                    //加入getter数组
+                    let tp:string = 'Array<' + a.entity + ">";
+                    getterFieldArr.push({fn:a.refName2,type:tp});
+                    entityArr.push("\tprivate " + a.refName2 + ':' + tp + ';');
                     entityArr.push("");
                     if(a.entity!==entityName && !importEntities.includes(a.entity)){
                         importEntities.push(a.entity);
                     }
                 }
             }
+        }
+
+        //添加set和get方法
+        for(let a of getterFieldArr){
+            let fn = a['fn'];
+            let type = a['type'];
+            //首字母大写
+            let bigP:string = fn.substr(0,1).toUpperCase() + fn.substr(1);
+            //getter方法
+            entityArr.push("\tpublic get" + bigP + "():"+ type +"{");
+            entityArr.push("\t\treturn this." + fn + ";");
+            entityArr.push("\t}"); 
+            //setter方法
+            entityArr.push("\tpublic set" + bigP + "(value:" + type +  "){");
+            entityArr.push("\t\tthis." + fn + " = value;");
+            entityArr.push("\t}"); 
+            entityArr.push(""); 
         }
         //实体结束
         entityArr.push("}");
@@ -191,6 +215,39 @@ class BaseGenerator{
         return entityArr.join(Util.getLineChar());
     }
 
+    /**
+     * 处理relation为标准relation
+     * @param relArr    关联数组
+     */
+    handleRelation(relArr:IRelation[]){
+        let map:Map<string,IRelation[]> = new Map();
+        //1 按ref entity归类
+        for(let o of relArr){
+            let key = o.refEntity + ',' + o.entity;
+            if(!map.has(key)){
+                map.set(key,[o]);
+            }else{
+                map.get(key).push(o);
+            }
+        }
+
+        //2 设置被引用名
+        for(let o of map){
+            if(o[1].length>1){
+                for(let o1 of o[1]){
+                    let cn:string = this.genName(o1.column,this.config.columnSplit,this.config.columnStart,0);
+                    //many to one 引用名
+                    o1.refName1 = o1.refEntity.substr(0,1).toLowerCase() + o1.refEntity.substr(1) + 'For' + cn;
+                    //one to many mapped name
+                    o1.refName2 = o1.entity.substr(0,1).toLowerCase() + o1.entity.substr(1) + 'For' + cn + 's';
+                }
+            }else{
+                o[1][0].refName1 = o[1][0].refEntity.substr(0,1).toLowerCase() + o[1][0].refEntity.substr(1);
+                o[1][0].refName2 = o[1][0].entity.substr(0,1).toLowerCase() + o[1][0].entity.substr(1) + 's';
+            }
+        }
+        this.relations = relArr;
+    }
     /**
      * 生成实体名或字段属性名
      * @remarks         实体名为每个单词首字母大写，字段属性名为驼峰标识

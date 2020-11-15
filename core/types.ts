@@ -101,14 +101,14 @@ interface IRelation{
     refColumn:string;
 
     /**
-     * 引用属性名
+     * 引用属性名(many to one关系 one对应属性名)
      */
-    refName?:string;
+    refName1?:string;
 
     /**
-     * 被引用属性名
+     * 引用属性名(one to many关系 many对应属性名)
      */
-    referedName?:string;
+    refName2?:string;
 }
 
 export{IConfig,IRelation,IColumn}
