@@ -1,0 +1,13 @@
+/.git/
+/.vscode/
+/node_modules/
+/out/
+/core/
+/dist/index.js
+/dist/index.js.map
+.gitignore
+.npmignore
+.DS_Store
+tsconfig.json
+index.ts
+config.json
