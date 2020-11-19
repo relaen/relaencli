@@ -1,8 +1,8 @@
 # Relaen-cli
-Relaen-cli是realean的客户端工具，主要用于生成数据表对应实体。
+Relaen-cli是relaen的客户端工具，主要用于生成数据表对应实体。
 
 ## 安装方式
-npm install relean-cli -g
+npm install relaen-cli -g
 ## 依赖包
 需要依赖对应数据库的npm包，如npm mysql，npm oracle等。如：dialect为mysql，则需要执行npm install mysql -g 以安装mysql npm包。
 
@@ -32,12 +32,6 @@ tableSplit|表名单词分隔符|string|是|无|
 tableStart|表名单词开始段(以tableSplit分段)|string|是|无|
 columnSplit|表名单词分隔符|string|是|无|
 columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
-
-## 源文件说明
-1. core目录  
-核心文件目录
-2. config  
-数据库字段类型映射配置目录
 
 ## 使用限制
 1. 目前只支持mysql数据库；
