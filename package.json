@@ -1,6 +1,6 @@
 {
   "name": "relaen-cli",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Relaen-cli is a client for relaen to generate entity classes",
   "main": "index.js",
   "files":[

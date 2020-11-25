@@ -99,7 +99,13 @@ class BaseGenerator{
         entityArr.push("export class " + entityName + " extends BaseEntity{");
         //需要import的entity名
         let importEntities:string[] = [];
+        //主键字段
         let primaryKey:string;
+
+        //主键字段对应属性
+        let primaryProp:string;
+        //主键类型
+        let primaryType:string;
         //字段集合 
         let fieldArr:IColumn[] = await this.getFields(conn,tn); 
         for(let r of fieldArr){
@@ -155,7 +161,10 @@ class BaseGenerator{
             }
             //加入getter数组
             getterFieldArr.push({fn:fn,type:type});
-
+            if(r.isPri){
+                primaryProp = fn;
+                primaryType = type;
+            }
             entityArr.push("\tprivate " + fn + ":" + type + ";");
             //加空白行
             entityArr.push("");
@@ -187,6 +196,12 @@ class BaseGenerator{
             }
         }
 
+        //增加构造函数
+        entityArr.push("\tconstructor(idValue?:"+ primaryType +"){");
+        entityArr.push("\t\tsuper();")
+        entityArr.push("\t\tthis." + primaryProp + " = idValue;");
+        entityArr.push("\t}");
+
         //添加set和get方法
         for(let a of getterFieldArr){
             let fn = a['fn'];
@@ -215,7 +230,7 @@ class BaseGenerator{
         // 引入relaen
         // 测试用
         // entityArr.unshift("import { EFkConstraint } from '../../core/entitydefine'");
-        // entityArr.unshift("import { BaseEntity } from '../../core/entity'");
+        // entityArr.unshift("import { BaseEntity } from '../../core/baseentity'");
         // entityArr.unshift("import { Entity, Id, Column, ManyToOne, JoinColumn, OneToMany } from '../../core/decorator/decorator'");
         entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen'")
         return entityArr.join(Util.getLineChar());

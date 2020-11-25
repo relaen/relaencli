@@ -9,5 +9,4 @@
 .npmignore
 .DS_Store
 tsconfig.json
-index.ts
 config.json

@@ -7,8 +7,8 @@ npm install relaen-cli -g
 需要依赖对应数据库的npm包，如npm mysql，npm oracle等。如：dialect为mysql，则需要执行npm install mysql -g 以安装mysql npm包。
 
 ## 使用方式
-1. relean-cli -i : 生成配置文件config.json；
-2. relean-cli -g : 生成实体类文件，存放于config.json文件对应output指定目录下。
+1. relaen-cli -i : 生成配置文件config.json；
+2. relaen-cli -g : 生成实体类文件，存放于config.json文件对应output指定目录下。
 
 ## 生成说明
 ### 实体命名规则
