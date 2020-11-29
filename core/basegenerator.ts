@@ -92,7 +92,7 @@ class BaseGenerator{
         
         //引入relaen对象
         let relaenArr:string[] = ['BaseEntity','Entity','Column'];
-        //设置get和set的字段数组
+        //设置get和set的字段数组{fn:字段名,type:类型,ref:是否外键}
         let getterFieldArr:object[] = [];
         let entityArr:string[] = [];
         entityArr.push("@Entity(\"" + tn + "\",'"+ this.config.database +"')");
@@ -143,7 +143,7 @@ class BaseGenerator{
                 if(!relaenArr.includes('JoinColumn')){
                     relaenArr.push('JoinColumn');
                 }
-                entityArr.push("\t@ManyToOne({entity:'" + relObj.refEntity + "',eager:false})");
+                entityArr.push("\t@ManyToOne({entity:'" + relObj.refEntity + "'})");
                 entityArr.push("\t@JoinColumn({name:'" + r.field + "',refName:'" + relObj.refColumn + "'})");
                 fn = relObj.refName1;
             }else{
@@ -160,7 +160,7 @@ class BaseGenerator{
                 fn = this.genName(r.field,this.config.columnSplit,this.config.columnStart,1);
             }
             //加入getter数组
-            getterFieldArr.push({fn:fn,type:type});
+            getterFieldArr.push({fn:fn,type:type,ref:relObj!==undefined});
             if(r.isPri){
                 primaryProp = fn;
                 primaryType = type;
@@ -182,11 +182,10 @@ class BaseGenerator{
                 }
                 for(let a of arr){
                     entityArr.push("\t@OneToMany({entity:'" + a.entity + "',onDelete:EFkConstraint." + 
-                        a.delete + ",onUpdate:EFkConstraint." + a.update + ",mappedBy:'" + a.refName1 + "'" +
-                        ",eager:false})");
+                        a.delete + ",onUpdate:EFkConstraint." + a.update + ",mappedBy:'" + a.refName1 + "'})");
                     //加入getter数组
                     let tp:string = 'Array<' + a.entity + ">";
-                    getterFieldArr.push({fn:a.refName2,type:tp});
+                    getterFieldArr.push({fn:a.refName2,type:tp,ref:true});
                     entityArr.push("\tprivate " + a.refName2 + ':' + tp + ';');
                     entityArr.push("");
                     if(a.entity!==entityName && !importEntities.includes(a.entity)){
@@ -209,9 +208,20 @@ class BaseGenerator{
             //首字母大写
             let bigP:string = fn.substr(0,1).toUpperCase() + fn.substr(1);
             //getter方法
-            entityArr.push("\tpublic get" + bigP + "():"+ type +"{");
-            entityArr.push("\t\treturn this." + fn + ";");
-            entityArr.push("\t}"); 
+            
+            if(a['ref']){
+                if(!relaenArr.includes('EntityProxy')){
+                    relaenArr.push('EntityProxy');
+                }
+                entityArr.push("\tpublic async get" + bigP + "():Promise<"+ type +">{");
+                entityArr.push("\t\treturn await EntityProxy.get(this,'" + fn + "');");
+                entityArr.push("\t}"); 
+            }else{  //非外键
+                entityArr.push("\tpublic get" + bigP + "():"+ type +"{");
+                entityArr.push("\t\treturn this." + fn + ";");
+                entityArr.push("\t}"); 
+            }
+            
             //setter方法
             entityArr.push("\tpublic set" + bigP + "(value:" + type +  "){");
             entityArr.push("\t\tthis." + fn + " = value;");
