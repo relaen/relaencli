@@ -4,9 +4,10 @@
                 "host":"localhost",
                 "port":3306,
                 "user":"root",
-                "password":"field"
+                "password":"field",
+                "database":"test"
             },
-            "database":"tunnel",
+            "database":"test",
             "output":"out",
             "tableSplit":"_",
             "tableStart":1,

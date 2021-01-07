@@ -1,6 +1,7 @@
 import { IConfig, IRelation, IColumn } from "./types";
 import { Util } from "./util";
 import { Dbtype } from "./dbtype";
+import { isPrimitive } from "util";
 
 /**
  * 基础生成器
@@ -122,52 +123,70 @@ class BaseGenerator{
             
             //默认字符串
             let type:string;
-            //varchar长度
-            let length:number;
-            
-            if(relObj){ //关系字段
-                type = relObj.refEntity;
-            }else{
-                type = r.tsType
-            }
             
             //字段名
             let fn:string;
+            //非引用字段或主键，外键作为主键，需要设置主键字段和引用对象(即设置两次)
+            if(!relObj || r.isPri){
+                type = r.tsType
+                entityArr.push("\t@Column({");
+                let arr:string[] = [];
+                arr.push("\t\tname:'" + r.field + "'");
+                arr.push("\t\ttype:'" + r.type + "'");
+                arr.push("\t\tnullable:" + r.nullable);
+                if(r.type==='string' && r.length && r.length>0){
+                    arr.push("\t\tlength:" + r.length)
+                }
+                entityArr.push(arr.join("," + Util.getLineChar()));
+                entityArr.push("\t})");
+                fn = this.genName(r.field,this.config.columnSplit,this.config.columnStart,1);
+                 //加入getter数组
+                getterFieldArr.push({fn:fn,type:type});
+                entityArr.push("\tprivate " + fn + ":" + type + ";");
+                //加空白行
+                entityArr.push("");
+                //如果是主键，则处理主键属性名和类型
+                if(r.isPri){
+                    primaryProp = fn;
+                    primaryType = type;
+                }
+            }
             if(relObj){ //引用字段
+                type = relObj.refEntity;
                 if(relObj.refEntity !== entityName && !importEntities.includes(relObj.refEntity)){
                     importEntities.push(relObj.refEntity);
                 }
-                if(!relaenArr.includes('ManyToOne')){
-                    relaenArr.push('ManyToOne');
-                }
+                
                 if(!relaenArr.includes('JoinColumn')){
                     relaenArr.push('JoinColumn');
                 }
-                entityArr.push("\t@ManyToOne({entity:'" + relObj.refEntity + "'})");
-                entityArr.push("\t@JoinColumn({name:'" + r.field + "',refName:'" + relObj.refColumn + "'})");
-                fn = relObj.refName1;
-            }else{
-                entityArr.push("\t@Column({");
-                let colArr:string[] = [];
-                colArr.push("\t\tname:'" + r.field + "'");
-                colArr.push("\t\ttype:'" + r.type + "'");
-                colArr.push("\t\tnullable:" + r.nullable);
-                if(length){
-                    colArr.push("\t\tlength:" + length)
+                //关系名，如果为主键，则为OneToOne否则为ManyToOne
+                let relName:string = r.isPri?'OneToOne':'ManyToOne';
+                if(r.isPri){
+                    entityArr.push("\t@OneToOne({entity:'" + relObj.refEntity + "'})");
+                }else{
+                    entityArr.push("\t@ManyToOne({entity:'" + relObj.refEntity + "'})");
                 }
-                entityArr.push(colArr.join("," + Util.getLineChar()));
+
+                if(!relaenArr.includes(relName)){
+                    relaenArr.push(relName);
+                }
+
+                entityArr.push("\t@JoinColumn({");
+                let arr:string[] = [];
+                arr.push("\t\tname:'" + r.field + "'");
+                arr.push("\t\trefName:'" + relObj.refColumn + "'");
+                //如果外键为主键，则nullable为true，因为主键已经处理为nullable为false
+                arr.push("\t\tnullable:" + (r.isPri?true:r.nullable));
+                entityArr.push(arr.join(',' + Util.getLineChar()));
                 entityArr.push("\t})");
-                fn = this.genName(r.field,this.config.columnSplit,this.config.columnStart,1);
+                fn = relObj.refName1;
+                 //加入getter数组
+                getterFieldArr.push({fn:fn,type:type,ref:relObj!==undefined});
+                entityArr.push("\tprivate " + fn + ":" + type + ";");
+                //加空白行
+                entityArr.push("");
             }
-            //加入getter数组
-            getterFieldArr.push({fn:fn,type:type,ref:relObj!==undefined});
-            if(r.isPri){
-                primaryProp = fn;
-                primaryType = type;
-            }
-            entityArr.push("\tprivate " + fn + ":" + type + ";");
-            //加空白行
-            entityArr.push("");
         }
         
         //one to many
@@ -177,12 +196,18 @@ class BaseGenerator{
                 if(!relaenArr.includes('OneToMany')){
                     relaenArr.push('OneToMany');
                 }
-                if(!relaenArr.includes('EFkConstraint')){
-                    relaenArr.push('EFkConstraint');
-                }
+                // if(!relaenArr.includes('EFkConstraint')){
+                //     relaenArr.push('EFkConstraint');
+                // }
                 for(let a of arr){
-                    entityArr.push("\t@OneToMany({entity:'" + a.entity + "',onDelete:EFkConstraint." + 
-                        a.delete + ",onUpdate:EFkConstraint." + a.update + ",mappedBy:'" + a.refName1 + "'})");
+                    entityArr.push("\t@OneToMany({");
+                    let arr:string[] = [];
+                    arr.push("\t\tentity:'" + a.entity + "'");
+                    arr.push("\t\tmappedBy:'" + a.refName1 + "'");
+                    // colArr.push("\t\tonDelete:EFkConstraint." + a.delete);
+                    // colArr.push("\t\tonUpdate:EFkConstraint." + a.update);
+                    entityArr.push(arr.join(',' + Util.getLineChar()));
+                    entityArr.push("\t})");
                     //加入getter数组
                     let tp:string = 'Array<' + a.entity + ">";
                     getterFieldArr.push({fn:a.refName2,type:tp,ref:true});
@@ -234,7 +259,7 @@ class BaseGenerator{
         entityArr.unshift("");
         //插入import entities
         for(let i=importEntities.length-1;i>=0;i--){
-            entityArr.unshift("import {" + importEntities[i] + "} from './" + importEntities[i].toLowerCase() + "'"); 
+            entityArr.unshift("import {" + importEntities[i] + "} from './" + importEntities[i].toLowerCase() + "';"); 
         }
 
         // 引入relaen
@@ -242,7 +267,7 @@ class BaseGenerator{
         // entityArr.unshift("import { EFkConstraint } from '../../core/entitydefine'");
         // entityArr.unshift("import { BaseEntity } from '../../core/baseentity'");
         // entityArr.unshift("import { Entity, Id, Column, ManyToOne, JoinColumn, OneToMany } from '../../core/decorator/decorator'");
-        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen'")
+        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
         return entityArr.join(Util.getLineChar());
     }
 
@@ -348,30 +373,24 @@ class BaseGenerator{
         for(let o in this.typeMap){
             if(column.type.indexOf(o) !== -1){
                 co = this.typeMap[o];
+                let ind1:number = column.type.indexOf('(');
+                //针对char和varchar，如果带长度，则处理长度
+                if(ind1>0){
+                    let ind2 = column.type.indexOf(')');
+                    if(ind2>ind1+1){
+                        let len = column.type.substring(ind1+1,ind2);
+                        column.length = parseInt(len);
+                    }
+                }
                 break;
             }
         }
         if(co){
             column.type = co.js;
             column.tsType = co.ts;
-            if(co.length){
-                column.length = co.length;
-            }
         }else{ //默认字符串
             column.tsType = 'string';
             column.type = 'string';
-        }
-        if(column.type === 'string' && !column.length){
-            let ind = column.type.indexOf('(');
-            if(ind !== -1){
-                let ind1 = column.type.indexOf(')');
-                if(ind<ind1-1){
-                    let s = column.type.substring(ind+1,ind1).trim();
-                    if(s!==''){
-                        column.length = parseInt(s);
-                    }
-                }
-            }
         }
     }
 }

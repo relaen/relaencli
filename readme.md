@@ -39,6 +39,9 @@ columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
 
 ## 升级日志
 ### 1.0.9
-1. 增加关联字段getter的代理代码
+1. 增加关联字段getter的代理代码。
 ### 1.1.0
-1. 删除关联对象的eager属性
+1. 删除关联对象的eager属性。
+### 1.1.1
+1. 删除OneToMany的onDelete和onUpdate属性；
+2. 修复string类型的length不生成bug。
