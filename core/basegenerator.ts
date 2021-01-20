@@ -142,7 +142,7 @@ class BaseGenerator{
                 fn = this.genName(r.field,this.config.columnSplit,this.config.columnStart,1);
                  //加入getter数组
                 getterFieldArr.push({fn:fn,type:type});
-                entityArr.push("\tprivate " + fn + ":" + type + ";");
+                entityArr.push("\tpublic " + fn + ":" + type + ";");
                 //加空白行
                 entityArr.push("");
                 //如果是主键，则处理主键属性名和类型
@@ -183,7 +183,7 @@ class BaseGenerator{
                 fn = relObj.refName1;
                  //加入getter数组
                 getterFieldArr.push({fn:fn,type:type,ref:relObj!==undefined});
-                entityArr.push("\tprivate " + fn + ":" + type + ";");
+                entityArr.push("\tpublic " + fn + ":" + type + ";");
                 //加空白行
                 entityArr.push("");
             }
@@ -211,7 +211,7 @@ class BaseGenerator{
                     //加入getter数组
                     let tp:string = 'Array<' + a.entity + ">";
                     getterFieldArr.push({fn:a.refName2,type:tp,ref:true});
-                    entityArr.push("\tprivate " + a.refName2 + ':' + tp + ';');
+                    entityArr.push("\tpublic " + a.refName2 + ':' + tp + ';');
                     entityArr.push("");
                     if(a.entity!==entityName && !importEntities.includes(a.entity)){
                         importEntities.push(a.entity);
@@ -239,18 +239,19 @@ class BaseGenerator{
                     relaenArr.push('EntityProxy');
                 }
                 entityArr.push("\tpublic async get" + bigP + "():Promise<"+ type +">{");
-                entityArr.push("\t\treturn await EntityProxy.get(this,'" + fn + "');");
+                // entityArr.push("\t\tif(this['"+ fn +"'])return this['" + fn + "'];");
+                entityArr.push("\t\treturn this['"+ fn +"']?this['"+ fn +"']:await EntityProxy.get(this,'" + fn + "');");
                 entityArr.push("\t}"); 
-            }else{  //非外键
+            }/*else{  //非外键
                 entityArr.push("\tpublic get" + bigP + "():"+ type +"{");
                 entityArr.push("\t\treturn this." + fn + ";");
                 entityArr.push("\t}"); 
-            }
+            }*/
             
             //setter方法
-            entityArr.push("\tpublic set" + bigP + "(value:" + type +  "){");
-            entityArr.push("\t\tthis." + fn + " = value;");
-            entityArr.push("\t}"); 
+            // entityArr.push("\tpublic set" + bigP + "(value:" + type +  "){");
+            // entityArr.push("\t\tthis." + fn + " = value;");
+            // entityArr.push("\t}"); 
             entityArr.push(""); 
         }
         //实体结束

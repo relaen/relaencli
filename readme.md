@@ -45,3 +45,6 @@ columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
 ### 1.1.1
 1. 删除OneToMany的onDelete和onUpdate属性；
 2. 修复string类型的length不生成bug。
+### 1.1.2
+1. 实体属性变为public，普通属性不生成setter和getter方法，关联属性不生成setter方法；
+2. 关联属性getter方法增加属性值判断。
