@@ -1,34 +1,42 @@
+import { BaseGenerator } from "./basegenerator";
 import { MysqlGenerator } from "./mysqlgenerator";
+import { OracleGenerator } from "./oracleGenerator";
+import { PostgresGennerator } from "./postgresgenerator";
+import { SqlServerGenerator } from "./sqlservergenerator";
 
-class Generator{
-    static async gen(configPath?:string){
+class Generator {
+    static async gen(configPath?: string) {
         configPath = configPath || 'config.json';
         //读文件
         const fs = require('fs');
-        let data = fs.readFileSync(configPath,'utf8');
-        if(!data){
+        let data = fs.readFileSync(configPath, 'utf8');
+        if (!data) {
             throw "file not exist";
         }
-        let configObj:any;
-        try{
+        let configObj: any;
+        try {
             configObj = JSON.parse(data);
-        }catch(e){
+        } catch (e) {
             throw e;
         }
-        switch(configObj){
+        let g: BaseGenerator;
+        console.log('Relaen is generating entities...')
+        switch (configObj.dialect) {
             case "oracle":
-
-            break;
-            case "mssql":
+                g = new OracleGenerator(configObj);
                 break;
-
+            case "mssql":
+                g = new SqlServerGenerator(configObj);
+                break;
+            case "postgres":
+                g = new PostgresGennerator(configObj);
+                break;
             default: //mysql
-                let g = new MysqlGenerator(configObj);
-                console.log('Relaen is generating entities...')
-                await g.gen();
-                console.log('Relaen has generated entities successfully!')
+                g = new MysqlGenerator(configObj);
         }
+        await g.gen();
+        console.log('Relaen has generated entities successfully!')
     }
 }
 
-export {Generator};
+export { Generator };

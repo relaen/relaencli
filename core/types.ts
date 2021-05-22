@@ -1,114 +1,124 @@
 /**
  * 配置对象
  */
-interface IConfig{
+interface IConfig {
     /**
      * 方言  mysql oracle mssql
      */
-    dialect:string,
+    dialect: string,
     /**
      * 数据库连接配置项，根据 node 环境下的各数据库配置说明进行配置
      */
-    options:any,
+    options: any,
     /**
      * 数据库名
      */
-    database:string;
+    database: string;
     /**
      * 输出目录
      */
-    output:string,
+    output: string,
     /**
      * 表名分割符，生成实体类名时需要，如t_user_info, '_'表示分隔符，默认无
      */
-    tableSplit?:string,
+    tableSplit?: string,
     /**
      * 表名开始索引，如t_user_info,如果为1，则表名为 UserInfo，单词首字母大写，默认为0
      */
-    tableStart?:number,
+    tableStart?: number,
     /**
      * 字段名分割符，生成属性名时需要，如c_user_name, '_'表示分隔符，默认无
      */
-    columnSplit?:string,
+    columnSplit?: string,
     /**
      * 字段名开始索引，如c_user_name,如果为1，则字段名为 userName(驼峰标识)，默认为0
      */
-    columnStart?:number
+    columnStart?: number
+
+    /**
+     * 数据库模式schema
+     */
+    schema?: string;
 }
 
 /**
  * 字段对象(表)
  */
-interface IColumn{
+interface IColumn {
     /**
      * 字段名
      */
-    field:string;
+    field: string;
     /**
      * 数据类型
      */
-    type:string;
+    type: string;
 
     /**
      * 是否主键
      */
-    isPri:boolean;
+    isPri: boolean;
 
     /**
      * 是否可空
      */
-    nullable:boolean;
+    nullable: boolean;
 
     /**
      * typescript 类型
      */
-    tsType?:string;
+    tsType?: string;
     /**
      * 字段定义长度
      */
-    length?:number;
+    length?: number;
+
+    /**
+     * 是否自增（mssql）
+     */
+    identity?: boolean;
 }
 
 /**
  * relation 接口
  */
-interface IRelation{
+interface IRelation {
     /**
      * 删除规则
      */
-    delete:string;
+    delete: string;
     /**
      * 更新规则
      */
-    update:string;
+    update: string;
     /**
      * 实体名
      */
-    entity:string;
+    entity: string;
 
     /**
      * 引用实体名
      */
-    refEntity:string;
+    refEntity: string;
 
     /**
      * 字段名
      */
-    column:string;
+    column: string;
     /**
      * 引用字段名
      */
-    refColumn:string;
+    refColumn: string;
 
     /**
      * 引用属性名(many to one关系 one对应属性名)
      */
-    refName1?:string;
+    refName1?: string;
 
     /**
      * 引用属性名(one to many关系 many对应属性名)
      */
-    refName2?:string;
+    refName2?: string;
 }
 
-export{IConfig,IRelation,IColumn}
+export { IConfig, IRelation, IColumn }

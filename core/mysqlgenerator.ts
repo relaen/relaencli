@@ -6,23 +6,22 @@ import { BaseGenerator } from "./basegenerator";
  * mysql 生成器
  */
 class MysqlGenerator extends BaseGenerator{
-    
+
     constructor(config:IConfig){
         super(config);
     }
 
-    async getConn(){
+    async getConn() {
         const db = require('mysql');
         return await db.createConnection(this.config.options);
     }
-
     
     /**
      * 获取表名数组
      * @param conn  数据库连接对象
      */
     async genTables(conn:any){
-        await this.changeDb(conn,this.config.database);
+        await this.changeDb(conn,this.config.options.database);
         let results:Array<any> = await new Promise((resolve,reject)=>{
             conn.query("show tables",
             (error,results,fields)=>{
@@ -81,7 +80,7 @@ class MysqlGenerator extends BaseGenerator{
         //获取外键信息
         let sql:string = "select constraint_name as constraintName,table_name as tableName,column_name as columnName," +
             "referenced_table_name as refTableName,referenced_column_name as refColumnName from key_column_usage "+
-            "where referenced_column_name is not null and table_schema='"+ this.config.database + "'";
+            "where referenced_column_name is not null and table_schema='"+ this.config.options.database + "'";
         let results:Array<any> = await new Promise((resolve,reject)=>{
             conn.query(sql,
             (error,results,fields)=>{
@@ -95,7 +94,7 @@ class MysqlGenerator extends BaseGenerator{
         for(let r of results){
             //外键delete和update规则
             sql = "select update_rule as updateRule,delete_rule as deleteRule from referential_constraints "+
-            "where UNIQUE_CONSTRAINT_SCHEMA='" + this.config.database + "' and CONSTRAINT_NAME='" + r.constraintName + "'";
+            "where UNIQUE_CONSTRAINT_SCHEMA='" + this.config.options.database + "' and CONSTRAINT_NAME='" + r.constraintName + "'";
             let results1:Array<any> = await new Promise((resolve,reject)=>{
                 conn.query(sql,
                 (error,results,fields)=>{
@@ -119,7 +118,7 @@ class MysqlGenerator extends BaseGenerator{
         }
         this.handleRelation(relArr);
         //切换回原数据库
-        await this.changeDb(conn,this.config.database);
+        await this.changeDb(conn,this.config.options.database);
     }
     
 
