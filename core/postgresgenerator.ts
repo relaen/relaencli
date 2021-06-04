@@ -1,4 +1,3 @@
-import { connect } from "node:http2";
 import { BaseGenerator } from "./basegenerator";
 import { IColumn, IRelation } from "./types";
 import { Util } from "./util";
@@ -8,13 +7,16 @@ export class PostgresGennerator extends BaseGenerator {
     async getConn() {
         const pg = require('pg');
         const options = {
-            user: this.config.options.user,//'postgres',
-            host: this.config.options.host,//'localhost',
-            database: this.config.options.database,//'postgres',
-            password: this.config.options.password,//'root',
-            port: this.config.options.port //5432
+            user: this.config.options.user,
+            host: this.config.options.host,
+            database: this.config.options.database,
+            password: this.config.options.password,
+            port: this.config.options.port
         }
-        this.config.schema = this.config.options.schema || "public";
+        this.config.options.schema = this.config.options.schema || "public";
+        if (this.config.options.schema !== 'public') {
+            this.config.schema = this.config.options.schema;
+        }
         let conn = new pg.Client(options);
         await conn.connect();
         return conn;
@@ -22,7 +24,7 @@ export class PostgresGennerator extends BaseGenerator {
 
     async genTables(conn: any) {
         let sql = "SELECT tablename FROM pg_tables WHERE SCHEMANAME = $1";
-        let tables = await conn.query(sql, [this.config.schema]);
+        let tables = await conn.query(sql, [this.config.options.schema]);
         for (let t of tables['rows']) {
             let en: string = this.genName(t.tablename, this.config.tableSplit, this.config.tableStart, 0);
             this.tables.set(en, t.tablename);
@@ -42,7 +44,7 @@ export class PostgresGennerator extends BaseGenerator {
                     AND pg_attribute.attnum = ANY (pg_index.indkey)
                 ) b ON a.COLUMN_NAME = b.attname
                 WHERE a.table_schema = $2 AND a.TABLE_NAME = $3;`
-        let fields = await conn.query(sql, [this.config.schema + '.'+tableName,this.config.schema,tableName]);
+        let fields = await conn.query(sql, [this.config.options.schema + '.' + tableName, this.config.options.schema, tableName]);
         let arr: IColumn[] = [];
         for (let f of fields.rows) {
             arr.push({
@@ -78,7 +80,7 @@ export class PostgresGennerator extends BaseGenerator {
                 LEFT JOIN information_schema.constraint_column_usage AS ccu ON ccu. CONSTRAINT_NAME = tc. CONSTRAINT_NAME AND ccu.table_schema = $1
                 LEFT JOIN (select c.* from pg_constraint c, pg_catalog.pg_namespace n where	c.connamespace = n.oid AND n.nspname = $1 AND contype = 'f') P ON tc. CONSTRAINT_NAME = P.conname
                 WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.constraint_schema = $1`;
-        let relations = await conn.query(sql,[this.config.schema]);
+        let relations = await conn.query(sql, [this.config.options.schema]);
         let arr: IRelation[] = [];
         for (let r of relations.rows) {
             arr.push({
@@ -86,8 +88,8 @@ export class PostgresGennerator extends BaseGenerator {
                 refColumn: r.refcolumn,
                 delete: Util.getConstraintRule(r.deleterule),
                 update: Util.getConstraintRule(r.updaterule),
-                entity:this.getEntityByTbl(r.table),
-                refEntity:this.getEntityByTbl(r.reftable)
+                entity: this.getEntityByTbl(r.table),
+                refEntity: this.getEntityByTbl(r.reftable)
             });
         }
         this.handleRelation(arr);

@@ -4,10 +4,9 @@
                 "host":"localhost",
                 "port":3306,
                 "user":"root",
-                "password":"field",
-                "database":"test"
+                "password":"root",
+                "database":"relaen"
             },
-            "database":"test",
             "output":"out",
             "tableSplit":"_",
             "tableStart":1,

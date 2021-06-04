@@ -1,6 +1,6 @@
 import { BaseGenerator } from "./basegenerator";
 import { MysqlGenerator } from "./mysqlgenerator";
-import { OracleGenerator } from "./oraclegenerator";
+import { OracleGenerator } from "./oracleGenerator";
 import { PostgresGennerator } from "./postgresgenerator";
 import { SqlServerGenerator } from "./sqlservergenerator";
 

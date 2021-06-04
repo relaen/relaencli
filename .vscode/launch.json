@@ -7,9 +7,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "relaen-cli",
             "program":"${file}",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "tsc: 构建 - tsconfig.json",
             "sourceMaps": true,
 
             "outFiles": [

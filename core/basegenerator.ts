@@ -94,8 +94,7 @@ abstract class BaseGenerator {
         //设置get和set的字段数组{fn:字段名,type:类型,ref:是否外键}
         let getterFieldArr: object[] = [];
         let entityArr: string[] = [];
-        // entityArr.push("@Entity(\"" + tn + "\",'" + this.config.options.database + "')");
-        entityArr.push(`@Entity({table:"${tn}", database:"${this.config.options.database}"` + (this.config.schema ? `, schema:"${this.config.schema}"` : '') + '})');
+        entityArr.push(`@Entity("${tn}"` + (this.config.schema ? `,"${this.config.schema}"` : '') + ')');
         entityArr.push("export class " + entityName + " extends BaseEntity{");
         //需要import的entity名
         let importEntities: string[] = [];
