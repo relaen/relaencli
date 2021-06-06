@@ -25,13 +25,23 @@ npm install relaen-cli -g
 配置项|说明|类型|是否必填|可选值|备注
 -|-|-|-|-|-
 dialect|数据库|string|是|mysql,oracle,mssql
-options|数据库连接属性对象|object|是|无|需要root权限
+options|数据库连接属性对象|object|是|无|需要root或管理员权限
 database|数据库名|string|是|无|
 output|输出目录|string|是|无|相对于根目录
 tableSplit|表名单词分隔符|string|是|无|
 tableStart|表名单词开始段(以tableSplit分段)|string|是|无|
 columnSplit|表名单词分隔符|string|是|无|
 columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
+
+### options配置项
+配置项|说明|类型|是否必填|可选值|备注
+-|-|-|-|-|-
+host|服务器地址|string|是|无|
+port|端口号|number|否|无|不同dialect默认port不同
+user|用户名|string|是|无|
+password|密码|string|是|无|
+database|数据库名|string|是|无|
+schema|schema|string|否|无|不同dialect默认schema不同
 
 ## 使用限制
 1. 目前只支持mysql数据库；
@@ -48,3 +58,7 @@ columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
 ### 1.1.2
 1. 实体属性变为public，普通属性不生成setter和getter方法，关联属性不生成setter方法；
 2. 关联属性getter方法增加属性值判断。
+
+### 1.1.3
+1. 增加oracle、mssql、postgres支持
+2. 增加schema配置
