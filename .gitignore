@@ -2,6 +2,6 @@
 dist/
 node_modules/
 out/
-.gitignore/
+.gitignore
 .npmignore/
 config.json
