@@ -1,12 +1,12 @@
 {
-    "dialect":"oracle",
+    "dialect":"mysql",
     "options":{
-        "host":"LAPTOP-RP35N3IA",
-        "port":1521,
-        "user":"SYSTEM",
+        "host":"localhost",
+        "port":3306,
+        "user":"root",
         "password":"root",
-        "database":"XE",
-        "schema":"C##FRANK2"   
+        "database":"relaen",
+        "schema":""   
     },
     "output":"out",
     "tableSplit":"_",
