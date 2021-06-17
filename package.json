@@ -24,7 +24,7 @@
     "commander": "^6.2.0",
     "mssql": "^7.1.0",
     "mysql": "^2.18.1",
-    "oracledb": "^5.1.0",
+    "oracledb": "^5.2.0",
     "pg": "^8.6.0"
   },
   "repository": {

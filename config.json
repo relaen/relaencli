@@ -1,16 +1,16 @@
 {
-            "dialect":"mysql",
-            "options":{
-                "host":"localhost",
-                "port":3306,
-                "user":"root",
-                "password":"field",
-                "database":"test"
-                // "schema":"test"  可不设置，即默认schema       
-            },
-            "output":"out",
-            "tableSplit":"_",
-            "tableStart":1,
-            "columnSplit":"_",
-            "columnStart":0
-        }
+    "dialect":"mysql",
+    "options":{
+        "host":"localhost",
+        "port":3306,
+        "user":"root",
+        "password":"root",
+        "database":"relaen",
+        "schema":""   
+    },
+    "output":"out",
+    "tableSplit":"_",
+    "tableStart":1,
+    "columnSplit":"_",
+    "columnStart":0
+}

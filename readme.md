@@ -41,11 +41,12 @@ port|端口号|number|否|无|不同dialect默认port不同
 user|用户名|string|是|无|
 password|密码|string|是|无|
 database|数据库名|string|是|无|
-schema|schema|string|否|无|不同dialect默认schema不同
+schema|模式名|string|否|无|不同dialect默认schema不同
 
 ## 使用限制
 1. 目前支持mysql、oracle、mssql、postgres数据库；
-2. 不支持复合主键。
+2. 不支持复合主键；
+3. oracle、mssql、postgres支持schema。
 
 ## 升级日志
 ### 1.0.9
