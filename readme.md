@@ -45,7 +45,8 @@ schema|模式名|string|否|无|不同dialect默认schema不同
 
 ## 使用限制
 1. 目前支持mysql、oracle、mssql、postgres数据库；
-2. 不支持复合主键。
+2. 不支持复合主键；
+3. oracle、mssql、postgres支持schema。
 
 ## 升级日志
 ### 1.0.9
