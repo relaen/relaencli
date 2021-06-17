@@ -5,8 +5,8 @@
                 "port":3306,
                 "user":"root",
                 "password":"field",
-                "database":"test",
-                "schema":"test"
+                "database":"test"
+                // "schema":"test"  可不设置，即默认schema       
             },
             "output":"out",
             "tableSplit":"_",
