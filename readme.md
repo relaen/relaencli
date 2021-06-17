@@ -41,7 +41,7 @@ port|端口号|number|否|无|不同dialect默认port不同
 user|用户名|string|是|无|
 password|密码|string|是|无|
 database|数据库名|string|是|无|
-schema|schema|string|否|无|不同dialect默认schema不同
+schema|schema|string|否|无|不同dialect默认schema不同，空缺即默认
 
 ## 使用限制
 1. 目前支持mysql、oracle、mssql、postgres数据库；
