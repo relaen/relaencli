@@ -1,16 +1,16 @@
 {
-            "dialect":"mysql",
-            "options":{
-                "host":"localhost",
-                "port":3306,
-                "user":"root",
-                "password":"field",
-                "database":"test"
-                // "schema":"test"  可不设置，即默认schema       
-            },
-            "output":"out",
-            "tableSplit":"_",
-            "tableStart":1,
-            "columnSplit":"_",
-            "columnStart":0
-        }
+    "dialect":"oracle",
+    "options":{
+        "host":"LAPTOP-RP35N3IA",
+        "port":1521,
+        "user":"SYSTEM",
+        "password":"root",
+        "database":"XE",
+        "schema":"C##FRANK2"   
+    },
+    "output":"out",
+    "tableSplit":"_",
+    "tableStart":1,
+    "columnSplit":"_",
+    "columnStart":0
+}

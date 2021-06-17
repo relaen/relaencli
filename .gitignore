@@ -1,0 +1,7 @@
+.vscode/
+dist/
+node_modules/
+out/
+.gitignore/
+.npmignore/
+config.json
