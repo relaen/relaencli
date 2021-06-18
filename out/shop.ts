@@ -1,44 +1,45 @@
-import {BaseEntity,Entity,Column,Id,JoinColumn,ManyToOne,EntityProxy} from '../..';
-import {User} from './user';
+import {BaseEntity,Entity,Column,Id,JoinColumn,ManyToOne,EntityProxy} from 'relaen';
+import {UserInfo} from './userinfo';
 
-@Entity("T_SHOP","C##FRANK2")
+@Entity("t_shop")
 export class Shop extends BaseEntity{
 	@Id()
 	@Column({
-		name:'SHOP_ID',
-		type:'number',
+		name:'shop_id',
+		type:'int',
 		nullable:false
 	})
 	public shopId:number;
 
-	@ManyToOne({entity:'User'})
+	@ManyToOne({entity:'UserInfo'})
 	@JoinColumn({
-		name:'OWNER_ID',
-		refName:'USER_ID',
+		name:'owner_id',
+		refName:'user_id',
 		nullable:true
 	})
-	public user:User;
+	public userInfoForOwnerId:UserInfo;
 
-	@Column({
-		name:'MANAGER_ID',
-		type:'number',
+	@ManyToOne({entity:'UserInfo'})
+	@JoinColumn({
+		name:'manager_id',
+		refName:'user_id',
 		nullable:true
 	})
-	public managerId:number;
+	public userInfoForManagerId:UserInfo;
 
 	@Column({
-		name:'SHOP_NAME',
+		name:'shop_name',
 		type:'string',
 		nullable:true,
-		length:255
+		length:32
 	})
 	public shopName:string;
 
 	@Column({
-		name:'ADDRESS',
+		name:'address',
 		type:'string',
 		nullable:true,
-		length:255
+		length:128
 	})
 	public address:string;
 
@@ -46,7 +47,10 @@ export class Shop extends BaseEntity{
 		super();
 		this.shopId = idValue;
 	}
-	public async getUser():Promise<User>{
-		return this['user']?this['user']:await EntityProxy.get(this,'user');
+	public async getUserInfoForOwnerId():Promise<UserInfo>{
+		return this['userInfoForOwnerId']?this['userInfoForOwnerId']:await EntityProxy.get(this,'userInfoForOwnerId');
+	}
+	public async getUserInfoForManagerId():Promise<UserInfo>{
+		return this['userInfoForManagerId']?this['userInfoForManagerId']:await EntityProxy.get(this,'userInfoForManagerId');
 	}
 }

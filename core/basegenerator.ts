@@ -270,11 +270,9 @@ abstract class BaseGenerator {
 
         // 引入relaen
         // 测试用
-        // entityArr.unshift("import { EFkConstraint } from '../../core/entitydefine'");
-        // entityArr.unshift("import { BaseEntity } from '../../core/baseentity'");
-        // entityArr.unshift("import { Entity, Id, Column, ManyToOne, JoinColumn, OneToMany } from '../../core/decorator/decorator'");
-        // entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
-        entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';")
+        // entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';")
+        // 发布用
+        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
         return entityArr.join(Util.getLineChar());
     }
 

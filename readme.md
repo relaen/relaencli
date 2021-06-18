@@ -4,7 +4,7 @@ Relaen-cli是relaen的客户端工具，主要用于生成数据表对应实体�
 ## 安装方式
 npm install relaen-cli -g
 ## 依赖包
-需要依赖对应数据库的npm包，如npm mysql，npm oracle，npm mssql，npm pg等。如：dialect为mysql，则需要执行npm install mysql -g 以安装mysql npm包。
+需要依赖对应数据库的npm包，如npm mysql，npm oracle，npm mssql，npm pg(postgres)等。如：dialect为mysql，则需要执行npm install mysql -g 以安装mysql npm包。
 
 ## 使用方式
 1. relaen-cli -i : 生成配置文件config.json；
@@ -60,7 +60,8 @@ schema|模式名|string|否|无|不同dialect默认schema不同
 ### 1.1.2
 1. 实体属性变为public，普通属性不生成setter和getter方法，关联属性不生成setter方法；
 2. 关联属性getter方法增加属性值判断。
-
 ### 1.1.3
-1. 增加oracle、mssql、postgres支持
-2. 增加schema配置
+1. 修改已知bug.
+### 1.1.4
+1. 增加oracle、mssql、postgres支持;
+2. 增加schema配置。

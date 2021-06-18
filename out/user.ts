@@ -1,35 +1,53 @@
-import {BaseEntity,Entity,Column,Id,OneToMany,EntityProxy} from '../..';
-import {Shop} from './shop';
+import {BaseEntity,Entity,Column,Id,OneToMany,EntityProxy} from 'relaen';
+import {GroupUser} from './groupuser';
+import {UserInfo} from './userinfo';
 
-@Entity("T_USER","C##FRANK2")
+@Entity("t_user")
 export class User extends BaseEntity{
 	@Id()
 	@Column({
-		name:'USER_ID',
-		type:'number',
+		name:'user_id',
+		type:'int',
 		nullable:false
 	})
 	public userId:number;
 
 	@Column({
-		name:'NAME',
+		name:'user_name',
 		type:'string',
 		nullable:true,
-		length:255
+		length:32
 	})
-	public name:string;
+	public userName:string;
+
+	@Column({
+		name:'user_pwd',
+		type:'string',
+		nullable:true,
+		length:32
+	})
+	public userPwd:string;
 
 	@OneToMany({
-		entity:'Shop',
+		entity:'GroupUser',
 		mappedBy:'user'
 	})
-	public shops:Array<Shop>;
+	public groupUsers:Array<GroupUser>;
+
+	@OneToMany({
+		entity:'UserInfo',
+		mappedBy:'user'
+	})
+	public userInfos:Array<UserInfo>;
 
 	constructor(idValue?:number){
 		super();
 		this.userId = idValue;
 	}
-	public async getShops():Promise<Array<Shop>>{
-		return this['shops']?this['shops']:await EntityProxy.get(this,'shops');
+	public async getGroupUsers():Promise<Array<GroupUser>>{
+		return this['groupUsers']?this['groupUsers']:await EntityProxy.get(this,'groupUsers');
+	}
+	public async getUserInfos():Promise<Array<UserInfo>>{
+		return this['userInfos']?this['userInfos']:await EntityProxy.get(this,'userInfos');
 	}
 }
