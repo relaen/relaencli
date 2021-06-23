@@ -26,7 +26,6 @@ npm install relaen-cli -g
 -|-|-|-|-|-
 dialect|数据库|string|是|mysql,oracle,mssql,postgres
 options|数据库连接属性对象|object|是|无|需要root或管理员权限
-database|数据库名|string|是|无|
 output|输出目录|string|是|无|相对于根目录
 tableSplit|表名单词分隔符|string|是|无|
 tableStart|表名单词开始段(以tableSplit分段)|string|是|无|
@@ -38,7 +37,7 @@ columnStart|字段名单词开始段(以tableSplit分段)|string|是|无|
 -|-|-|-|-|-
 host|服务器地址|string|是|无|
 port|端口号|number|否|无|不同dialect默认port不同
-user|用户名|string|是|无|
+user|用户名|string|是|无|root、sa或其它管理员权限
 password|密码|string|是|无|
 database|数据库名|string|是|无|
 schema|模式名|string|否|无|不同dialect默认schema不同
@@ -65,3 +64,6 @@ schema|模式名|string|否|无|不同dialect默认schema不同
 ### 1.1.4
 1. 增加oracle、mssql、postgres支持;
 2. 增加schema配置。
+
+### 1.1.7
+1. 修复已知bug。

@@ -1,15 +1,12 @@
 {
   "name": "relaen-cli",
-  "version": "1.1.4",
+  "version": "1.1.7",
   "description": "Relaen-cli is a client for relaen to generate entity classes",
   "main": "index.js",
   "files": [
-    "dist/core/basegenerator.js",
-    "dist/core/generator.js",
-    "dist/core/mysqlgenerator.js",
-    "dist/core/types.js",
-    "dist/core/util.js",
-    "dist/core/dbtype.js"
+    "dist/core/**/*.js",
+    "dist/core/**/*.js.map",
+    "dist/types/core/**/*.d.ts"
   ],
   "bin": {
     "relaen-cli": "index.js"
@@ -21,11 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^15.12.0",
-    "commander": "^6.2.0",
-    "mssql": "^7.1.0",
-    "mysql": "^2.18.1",
-    "oracledb": "^5.2.0",
-    "pg": "^8.6.0"
+    "commander": "^6.2.0"
   },
   "repository": {
     "type": "git",

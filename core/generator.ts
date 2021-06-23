@@ -2,7 +2,7 @@ import { BaseGenerator } from "./basegenerator";
 import { MysqlGenerator } from "./mysqlgenerator";
 import { OracleGenerator } from "./oracleGenerator";
 import { PostgresGennerator } from "./postgresgenerator";
-import { SqlServerGenerator } from "./sqlservergenerator";
+import { MssqlGenerator } from "./mssqlgenerator";
 
 class Generator {
     static async gen(configPath?: string) {
@@ -26,7 +26,7 @@ class Generator {
                 g = new OracleGenerator(configObj);
                 break;
             case "mssql":
-                g = new SqlServerGenerator(configObj);
+                g = new MssqlGenerator(configObj);
                 break;
             case "postgres":
                 g = new PostgresGennerator(configObj);

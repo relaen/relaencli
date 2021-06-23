@@ -2,7 +2,7 @@ import { BaseGenerator } from "./basegenerator";
 import { IColumn, IConfig, IRelation } from "./types";
 import { Util } from "./util";
 
-export class SqlServerGenerator extends BaseGenerator {
+export class MssqlGenerator extends BaseGenerator {
 
     constructor(config: IConfig) {
         super(config);
@@ -14,6 +14,7 @@ export class SqlServerGenerator extends BaseGenerator {
             user: this.config.options.user,
             password: this.config.options.password,
             server: this.config.options.host,
+            port:this.config.options.port,
             database: this.config.options.database,
             options: {
                 encrypt: false // for azure
