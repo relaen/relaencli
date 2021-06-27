@@ -28,9 +28,10 @@ function initConfig() {
                 "host":"localhost",
                 "port":3306,
                 "user":"root",
-                "password":"your parssword"
+                "password":"your parssword",
+                "database":"your database",
+                "schema":""
             },
-            "database":"your database",
             "output":"out",
             "tableSplit":"_",
             "tableStart":1,

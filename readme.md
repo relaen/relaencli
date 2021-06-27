@@ -67,3 +67,5 @@ schema|模式名|string|否|无|不同dialect默认schema不同
 
 ### 1.1.7
 1. 修复已知bug。
+### 1.1.8
+1. 修改生成config.json配置文件
