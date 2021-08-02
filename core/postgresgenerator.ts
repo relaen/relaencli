@@ -42,6 +42,7 @@ export class PostgresGennerator extends BaseGenerator {
                     WHERE pg_class.oid = $1 :: regclass AND pg_index.indrelid = pg_class.oid
                     AND pg_attribute.attrelid = pg_class.oid
                     AND pg_attribute.attnum = ANY (pg_index.indkey)
+                    AND pg_index.indisprimary = 't' 
                 ) b ON a.COLUMN_NAME = b.attname
                 WHERE a.table_schema = $2 AND a.TABLE_NAME = $3;`
         let fields = await conn.query(sql, [this.config.options.schema + '.' + tableName, this.config.options.schema, tableName]);
