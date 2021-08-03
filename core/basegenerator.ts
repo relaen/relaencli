@@ -6,10 +6,12 @@ import { Dbtype } from "./dbtype";
  * 基础生成器
  */
 abstract class BaseGenerator {
+
     /**
      * 数据库配置，从config.json中获取
      */
     config: IConfig;
+
     /**
      * 表map {实体名:表名}
      */
@@ -19,6 +21,7 @@ abstract class BaseGenerator {
      * 外键关联数组
      */
     relations: IRelation[];
+
     /**
      * 数据库类型与js,ts类型关系
      */
@@ -37,7 +40,12 @@ abstract class BaseGenerator {
     abstract getConn();
 
     /**
-     * 生成实体,表名map
+     * 关闭连接
+     */
+    abstract closeConn(conn: any);
+
+    /**
+     * 生成表实体
      * @param conn          数据库连接对象
      */
     abstract genTables(conn: any);
@@ -80,6 +88,7 @@ abstract class BaseGenerator {
             let str = await this.genEntity(conn, key);
             fsMdl.writeFileSync(pathMdl.resolve(path, key.toLowerCase() + '.ts'), str);
         }
+        await this.closeConn(conn);
     }
 
     /**
@@ -94,7 +103,8 @@ abstract class BaseGenerator {
         //设置get和set的字段数组{fn:字段名,type:类型,ref:是否外键}
         let getterFieldArr: object[] = [];
         let entityArr: string[] = [];
-        entityArr.push(`@Entity("${tn}"` + (this.config.schema ? `,"${this.config.schema}"` : '') + ')');
+
+        entityArr.push("@Entity('" + tn + "'" + (this.config.schema ? ",'" + this.config.schema + "'" : "") + ")");
         entityArr.push("export class " + entityName + " extends BaseEntity{");
         //需要import的entity名
         let importEntities: string[] = [];
@@ -109,6 +119,7 @@ abstract class BaseGenerator {
         let fieldArr: IColumn[] = await this.getFields(conn, tn);
         for (let r of fieldArr) {
             this.updType(r);
+
             //id
             if (r.isPri) {
                 entityArr.push("\t@Id()");
@@ -142,7 +153,7 @@ abstract class BaseGenerator {
                 entityArr.push("\t})");
                 fn = this.genName(r.field, this.config.columnSplit, this.config.columnStart, 1);
                 //加入getter数组
-                getterFieldArr.push({ fn: fn, type: type });
+                // getterFieldArr.push({ fn: fn, type: type });
                 entityArr.push("\tpublic " + fn + ":" + type + ";");
                 //加空白行
                 entityArr.push("");
@@ -214,6 +225,7 @@ abstract class BaseGenerator {
                     getterFieldArr.push({ fn: a.refName2, type: tp, ref: true });
                     entityArr.push("\tpublic " + a.refName2 + ':' + tp + ';');
                     entityArr.push("");
+                    // TODO 数据库增加一个自引用数据
                     if (a.entity !== entityName && !importEntities.includes(a.entity)) {
                         importEntities.push(a.entity);
                     }
@@ -222,6 +234,7 @@ abstract class BaseGenerator {
         }
 
         //增加构造函数
+        // TODO 多对多时，没有主键测试数据
         entityArr.push("\tconstructor(" + (primaryKey ? "idValue?:" + primaryType : "") + "){");
         // entityArr.push("\tconstructor(idValue?:" + primaryType + "){");
         entityArr.push("\t\tsuper();")
@@ -247,11 +260,11 @@ abstract class BaseGenerator {
                 entityArr.push("\t\treturn this['" + fn + "']?this['" + fn + "']:await EntityProxy.get(this,'" + fn + "');");
                 entityArr.push("\t}");
             }
-            else {  //非外键
+            // else {  //非外键
                 // entityArr.push("\tpublic get" + bigP + "():" + type + "{");
                 // entityArr.push("\t\treturn this." + fn + ";");
                 // entityArr.push("\t}");
-            }
+            // }
 
             // setter方法
             // entityArr.push("\tpublic set" + bigP + "(value:" + type + "){");
@@ -383,7 +396,7 @@ abstract class BaseGenerator {
             if (column.type.indexOf(o) !== -1) {
                 co = this.typeMap[o];
                 let ind1: number = column.type.indexOf('(');
-                //针对char和varchar，如果带长度，则处理长度
+                //针对char和varchar，如果带长度，则处理长度，处理mysql/mariadb
                 if (ind1 > 0) {
                     let ind2 = column.type.indexOf(')');
                     if (ind2 > ind1 + 1) {

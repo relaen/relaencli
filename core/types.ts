@@ -2,41 +2,44 @@
  * 配置对象
  */
 interface IConfig {
+
     /**
-     * 方言  mysql oracle mssql
+     * 数据库类型  mysql oracle mssql postgres sqlite mariadb
      */
     dialect: string,
+
     /**
      * 数据库连接配置项，根据 node 环境下的各数据库配置说明进行配置
      */
     options: any,
-    /**
-     * 数据库名
-     */
-    database: string;
+
     /**
      * 输出目录
      */
     output: string,
+
     /**
      * 表名分割符，生成实体类名时需要，如t_user_info, '_'表示分隔符，默认无
      */
     tableSplit?: string,
+
     /**
      * 表名开始索引，如t_user_info,如果为1，则表名为 UserInfo，单词首字母大写，默认为0
      */
     tableStart?: number,
+
     /**
      * 字段名分割符，生成属性名时需要，如c_user_name, '_'表示分隔符，默认无
      */
     columnSplit?: string,
+
     /**
      * 字段名开始索引，如c_user_name,如果为1，则字段名为 userName(驼峰标识)，默认为0
      */
     columnStart?: number
 
     /**
-     * 数据库模式schema
+     * 数据库模式schema，适用部分数据库
      */
     schema?: string;
 }
@@ -44,11 +47,14 @@ interface IConfig {
 /**
  * 字段对象(表)
  */
+// TODO 是否新增元素：select查询可见
 interface IColumn {
+
     /**
      * 字段名
      */
     field: string;
+
     /**
      * 数据类型
      */
@@ -68,6 +74,7 @@ interface IColumn {
      * typescript 类型
      */
     tsType?: string;
+
     /**
      * 字段定义长度
      */
@@ -83,14 +90,17 @@ interface IColumn {
  * relation 接口
  */
 interface IRelation {
+
     /**
      * 删除规则
      */
-    delete: string;
+    // delete: string;
+
     /**
      * 更新规则
      */
-    update: string;
+    // update: string;
+
     /**
      * 实体名
      */
@@ -105,6 +115,7 @@ interface IRelation {
      * 字段名
      */
     column: string;
+    
     /**
      * 引用字段名
      */
