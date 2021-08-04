@@ -63,7 +63,7 @@ class MssqlGenerator extends BaseGenerator {
             .query(`SELECT s.name, t.name as type, s.length, s.isnullable, p.column_name as idName FROM syscolumns s
                 LEFT JOIN(SELECT k.column_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k, sysobjects o, sys.objects o1, sys.schemas c 
                 WHERE k.constraint_name = o.name AND o.id = o1.object_id AND o.xtype = 'PK' AND k.TABLE_SCHEMA = @1 AND k.TABLE_NAME = @0 AND o1.schema_id = c.schema_id and c.name = @1) p 
-                ON s.name = p.column_name LEFT JOIN systypes t ON s.xtype = t.xtype WHERE id = OBJECT_ID(@2)`);
+                ON s.name = p.column_name LEFT JOIN systypes t ON s.xusertype = t.xusertype WHERE id = OBJECT_ID(@2)`);
         let identitys = await conn.request().input("0", this.config.options.schema + "." + tableName).query("select name from syscolumns where id=object_id(@0) and status=0x80");
         let arr: IColumn[] = [];
         for (let f of results.recordset) {
