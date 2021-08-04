@@ -225,7 +225,6 @@ abstract class BaseGenerator {
                     getterFieldArr.push({ fn: a.refName2, type: tp, ref: true });
                     entityArr.push("\tpublic " + a.refName2 + ':' + tp + ';');
                     entityArr.push("");
-                    // TODO 数据库增加一个自引用数据
                     if (a.entity !== entityName && !importEntities.includes(a.entity)) {
                         importEntities.push(a.entity);
                     }
@@ -234,9 +233,10 @@ abstract class BaseGenerator {
         }
 
         //增加构造函数
-        // TODO 多对多时，没有主键测试数据
-        entityArr.push("\tconstructor(" + (primaryKey ? "idValue?:" + primaryType : "") + "){");
-        // entityArr.push("\tconstructor(idValue?:" + primaryType + "){");
+        if (!primaryKey) {
+            throw new Error("\"" + tn + "\" 表缺少主键");
+        }
+        entityArr.push("\tconstructor(idValue?:" + primaryType + "){");
         entityArr.push("\t\tsuper();")
         if (primaryKey) {
             entityArr.push("\t\tthis." + primaryProp + " = idValue;");
@@ -261,9 +261,9 @@ abstract class BaseGenerator {
                 entityArr.push("\t}");
             }
             // else {  //非外键
-                // entityArr.push("\tpublic get" + bigP + "():" + type + "{");
-                // entityArr.push("\t\treturn this." + fn + ";");
-                // entityArr.push("\t}");
+            // entityArr.push("\tpublic get" + bigP + "():" + type + "{");
+            // entityArr.push("\t\treturn this." + fn + ";");
+            // entityArr.push("\t}");
             // }
 
             // setter方法
