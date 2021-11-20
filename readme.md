@@ -64,8 +64,10 @@ schema|模式名|string|否|无|不同dialect默认schema不同
 ### 1.1.4
 1. 增加oracle、mssql、postgres支持;
 2. 增加schema配置。
-
 ### 1.1.7
 1. 修复已知bug。
 ### 1.1.8
 1. 修改生成config.json配置文件
+### 1.1.9
+1. 增加mariadb、sqlite支持；
+2. 视图不生成实体
