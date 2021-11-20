@@ -22,7 +22,7 @@ class MysqlGenerator extends BaseGenerator {
     async genTables(conn: any) {
         await this.changeDb(conn, this.config.options.database);
         let results: Array<any> = await new Promise((resolve, reject) => {
-            conn.query("show tables",
+            conn.query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE'", [this.config.options.database],
                 (err, results, fields) => {
                     if (err) {
                         return reject(err);

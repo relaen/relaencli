@@ -15,7 +15,7 @@ class OracleGenerator extends BaseGenerator {
         let options = {
             user: this.config.options.user,
             password: this.config.options.password,
-            connectString: this.config.options.host + ":" + this.config.options.port + "/" + this.config.options.database
+            connectString: this.config.options.host + ":" + (this.config.options.port || 1521) + "/" + this.config.options.database
         }
         this.config.options.schema = this.config.options.schema || this.config.options.user;
         if (this.config.options.schema !== this.config.options.user) {

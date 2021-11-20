@@ -29,7 +29,7 @@ class MariadbGenerator extends BaseGenerator {
      */
     async genTables(conn: any) {
         await this.changeDb(conn, this.config.options.database);
-        let results: Array<any> = await conn.query("show tables");
+        let results: Array<any> = await conn.query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE'", [this.config.options.database]);
         for (let r of results) {
             let props = Object.getOwnPropertyNames(r);
             let tn = r[props[0]];

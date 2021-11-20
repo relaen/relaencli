@@ -47,7 +47,6 @@ interface IConfig {
 /**
  * 字段对象(表)
  */
-// TODO 是否新增元素：select查询可见
 interface IColumn {
 
     /**
@@ -81,7 +80,7 @@ interface IColumn {
     length?: number;
 
     /**
-     * 是否自增（mssql）
+     * 是否自增（mssql）更新新增不添加
      */
     identity?: boolean;
 }

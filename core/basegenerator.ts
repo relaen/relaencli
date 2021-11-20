@@ -283,9 +283,9 @@ abstract class BaseGenerator {
 
         // 引入relaen
         // 测试用
-        // entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';")
+        // entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';");
         // 发布用
-        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
+        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';");
         return entityArr.join(Util.getLineChar());
     }
 

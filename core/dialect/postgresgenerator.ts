@@ -17,7 +17,7 @@ class PostgresGennerator extends BaseGenerator {
             host: this.config.options.host,
             database: this.config.options.database,
             password: this.config.options.password,
-            port: this.config.options.port
+            port: this.config.options.port || 5432
         }
         this.config.options.schema = this.config.options.schema || "public";
         if (this.config.options.schema !== "public") {

@@ -16,7 +16,7 @@ class MssqlGenerator extends BaseGenerator {
             user: this.config.options.user,
             password: this.config.options.password,
             server: this.config.options.host,
-            port: this.config.options.port,
+            port: this.config.options.port || 1433,
             database: this.config.options.database,
             options: {
                 encrypt: false, // for azure
