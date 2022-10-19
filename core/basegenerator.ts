@@ -6,10 +6,12 @@ import { Dbtype } from "./dbtype";
  * 基础生成器
  */
 abstract class BaseGenerator {
+
     /**
      * 数据库配置，从config.json中获取
      */
     config: IConfig;
+
     /**
      * 表map {实体名:表名}
      */
@@ -19,6 +21,7 @@ abstract class BaseGenerator {
      * 外键关联数组
      */
     relations: IRelation[];
+
     /**
      * 数据库类型与js,ts类型关系
      */
@@ -37,7 +40,12 @@ abstract class BaseGenerator {
     abstract getConn();
 
     /**
-     * 生成实体,表名map
+     * 关闭连接
+     */
+    abstract closeConn(conn: any);
+
+    /**
+     * 生成表实体
      * @param conn          数据库连接对象
      */
     abstract genTables(conn: any);
@@ -80,6 +88,7 @@ abstract class BaseGenerator {
             let str = await this.genEntity(conn, key);
             fsMdl.writeFileSync(pathMdl.resolve(path, key.toLowerCase() + '.ts'), str);
         }
+        await this.closeConn(conn);
     }
 
     /**
@@ -94,7 +103,8 @@ abstract class BaseGenerator {
         //设置get和set的字段数组{fn:字段名,type:类型,ref:是否外键}
         let getterFieldArr: object[] = [];
         let entityArr: string[] = [];
-        entityArr.push(`@Entity("${tn}"` + (this.config.schema ? `,"${this.config.schema}"` : '') + ')');
+
+        entityArr.push("@Entity('" + tn + "'" + (this.config.schema ? ",'" + this.config.schema + "'" : "") + ")");
         entityArr.push("export class " + entityName + " extends BaseEntity{");
         //需要import的entity名
         let importEntities: string[] = [];
@@ -114,18 +124,16 @@ abstract class BaseGenerator {
                 entityArr.push("\t@Id()");
                 primaryKey = r.field;
                 if (!relaenArr.includes('Id')) {
-                    relaenArr.push('Id');
+                    relaenArr.push('Id');// 在import添加 id
                 }
             }
-            let relObj: IRelation = this.getRelation(entityName, r.field);
-
+            let relObj: IRelation = this.getRelation(entityName, r.field);//引用
             //默认字符串
             let type: string;
-
             //字段名
             let fn: string;
-            //非引用字段或主键，外键作为主键，需要设置主键字段和引用对象(即设置两次)
-            if (!relObj || r.isPri) {
+            //非引用字段 
+            if (!relObj) {
                 type = r.tsType
                 entityArr.push("\t@Column({");
                 let arr: string[] = [];
@@ -135,14 +143,14 @@ abstract class BaseGenerator {
                 if (r.type === 'string' && r.length && r.length > 0) {
                     arr.push("\t\tlength:" + r.length)
                 }
-                if (r.identity && typeof r.identity == 'boolean') {
-                    arr.push("\t\tidentity:" + r.identity);
+                if (r.identity && typeof r.identity == 'boolean') { //mssql 主键自增时不允许插入
+                    arr.push("\t\tisinsert:false");
                 }
                 entityArr.push(arr.join("," + Util.getLineChar()));
                 entityArr.push("\t})");
                 fn = this.genName(r.field, this.config.columnSplit, this.config.columnStart, 1);
                 //加入getter数组
-                getterFieldArr.push({ fn: fn, type: type });
+                // getterFieldArr.push({ fn: fn, type: type });
                 entityArr.push("\tpublic " + fn + ":" + type + ";");
                 //加空白行
                 entityArr.push("");
@@ -152,7 +160,9 @@ abstract class BaseGenerator {
                     primaryType = type;
                 }
             }
-            if (relObj) { //引用字段
+
+            //OnetoOne 或 ManyToOne
+            if (relObj) {  //引用字段
                 type = relObj.refEntity;
                 if (relObj.refEntity !== entityName && !importEntities.includes(relObj.refEntity)) {
                     importEntities.push(relObj.refEntity);
@@ -163,7 +173,7 @@ abstract class BaseGenerator {
                 }
                 //关系名，如果为主键，则为OneToOne否则为ManyToOne
                 let relName: string = r.isPri ? 'OneToOne' : 'ManyToOne';
-                if (r.isPri) {
+                if (r.isPri || r.isUnique) {
                     entityArr.push("\t@OneToOne({entity:'" + relObj.refEntity + "'})");
                 } else {
                     entityArr.push("\t@ManyToOne({entity:'" + relObj.refEntity + "'})");
@@ -190,17 +200,47 @@ abstract class BaseGenerator {
             }
         }
 
-        //one to many
-        if (primaryKey) {
-            let arr: IRelation[] = this.getRefered(entityName, primaryKey);
-            if (arr.length > 0) {
-                if (!relaenArr.includes('OneToMany')) {
-                    relaenArr.push('OneToMany');
-                }
-                // if(!relaenArr.includes('EFkConstraint')){
-                //     relaenArr.push('EFkConstraint');
-                // }
-                for (let a of arr) {
+        /**主键关联  处理onetomany||onetoone**/
+        if (!primaryKey) {
+            throw new Error("\"" + tn + "\" 表缺少主键");
+        }
+        let referArr: IRelation[] = this.getRefered(entityName, primaryKey);
+        if (referArr.length > 0) {
+            // if(!relaenArr.includes('EFkConstraint')){
+            //     relaenArr.push('EFkConstraint');
+            // }
+            for (let a of referArr) {
+                //将该表主键作外键的表字段
+                let tbname = this.tables.get(a.entity);
+                let relArr: IColumn[] = await this.getFields(conn, tbname);
+                //是否也为该外表主键或唯一键（Unique）
+                let isOneTOOne: Boolean = this.getRefRel(a.column, relArr);
+                if (isOneTOOne) { //OneToOne
+                    if (!relaenArr.includes('OneToOne')) {
+                        relaenArr.push('OneToOne');
+                    }
+                    //添加one to one
+                    entityArr.push("\t@OneToOne({");
+                    let arr: string[] = [];
+                    arr.push("\t\tentity:'" + a.entity + "'");
+                    arr.push("\t\tmappedBy:'" + a.refName1 + "'");
+                    entityArr.push(arr.join(',' + Util.getLineChar()));
+                    entityArr.push("\t})");
+                    //加入getter数组
+                    let tp: string = a.entity;
+                    let rfname2 = a.refName2.slice(0, a.refName2.length - 1) //处理外表名
+                    getterFieldArr.push({ fn: rfname2, type: tp, ref: true });
+                    entityArr.push("\tpublic " + rfname2 + ':' + tp + ';');
+                    entityArr.push("");
+                    //加入import
+                    if (a.entity !== entityName && !importEntities.includes(a.entity)) {
+                        importEntities.push(a.entity);
+                    }
+                } else { //OneToMany
+                    if (!relaenArr.includes('OneToMany')) {
+                        relaenArr.push('OneToMany');
+                    }
+                    //添加one to many
                     entityArr.push("\t@OneToMany({");
                     let arr: string[] = [];
                     arr.push("\t\tentity:'" + a.entity + "'");
@@ -218,24 +258,34 @@ abstract class BaseGenerator {
                         importEntities.push(a.entity);
                     }
                 }
+
             }
         }
 
+
         //增加构造函数
-        entityArr.push("\tconstructor(" + (primaryKey ? "idValue?:" + primaryType : "") + "){");
-        // entityArr.push("\tconstructor(idValue?:" + primaryType + "){");
-        entityArr.push("\t\tsuper();")
-        if (primaryKey) {
-            entityArr.push("\t\tthis." + primaryProp + " = idValue;");
+        let keyObj: IRelation = this.getRelation(entityName, primaryKey);
+        if (keyObj) {
+            entityArr.push("\tconstructor(" + keyObj.refName1 + "?:" + keyObj.refEntity + "){");
+            entityArr.push("\t\tsuper();")
+            entityArr.push("\t\tthis." + keyObj.refName1 + " = " + keyObj.refName1 + ";");
+            entityArr.push("\t}");
+
+        } else {
+            entityArr.push("\tconstructor(idValue?:" + primaryType + "){");
+            entityArr.push("\t\tsuper();")
+            if (primaryKey) {
+                entityArr.push("\t\tthis." + primaryProp + " = idValue;");
+            }
+            entityArr.push("\t}");
         }
-        entityArr.push("\t}");
 
         //添加set和get方法
         for (let a of getterFieldArr) {
             let fn = a['fn'];
             let type = a['type'];
             //首字母大写
-            let bigP: string = fn.substr(0, 1).toUpperCase() + fn.substr(1);
+            let bigP: string = fn.substring(0, 1).toUpperCase() + fn.substring(1);
             //getter方法
 
             if (a['ref']) {
@@ -247,11 +297,11 @@ abstract class BaseGenerator {
                 entityArr.push("\t\treturn this['" + fn + "']?this['" + fn + "']:await EntityProxy.get(this,'" + fn + "');");
                 entityArr.push("\t}");
             }
-            else {  //非外键
-                // entityArr.push("\tpublic get" + bigP + "():" + type + "{");
-                // entityArr.push("\t\treturn this." + fn + ";");
-                // entityArr.push("\t}");
-            }
+            // else {  //非外键
+            // entityArr.push("\tpublic get" + bigP + "():" + type + "{");
+            // entityArr.push("\t\treturn this." + fn + ";");
+            // entityArr.push("\t}");
+            // }
 
             // setter方法
             // entityArr.push("\tpublic set" + bigP + "(value:" + type + "){");
@@ -270,9 +320,9 @@ abstract class BaseGenerator {
 
         // 引入relaen
         // 测试用
-        // entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';")
+        // entityArr.unshift("import {" + relaenArr.join(',') + "} from '../..';");
         // 发布用
-        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';")
+        entityArr.unshift("import {" + relaenArr.join(',') + "} from 'relaen';");
         return entityArr.join(Util.getLineChar());
     }
 
@@ -298,13 +348,13 @@ abstract class BaseGenerator {
                 for (let o1 of o[1]) {
                     let cn: string = this.genName(o1.column, this.config.columnSplit, this.config.columnStart, 0);
                     //many to one 引用名
-                    o1.refName1 = o1.refEntity.substr(0, 1).toLowerCase() + o1.refEntity.substr(1) + 'For' + cn;
+                    o1.refName1 = o1.refEntity.substring(0, 1).toLowerCase() + o1.refEntity.substring(1) + 'For' + cn;
                     //one to many mapped name
-                    o1.refName2 = o1.entity.substr(0, 1).toLowerCase() + o1.entity.substr(1) + 'For' + cn + 's';
+                    o1.refName2 = o1.entity.substring(0, 1).toLowerCase() + o1.entity.substring(1) + 'For' + cn + 's';
                 }
             } else {
-                o[1][0].refName1 = o[1][0].refEntity.substr(0, 1).toLowerCase() + o[1][0].refEntity.substr(1);
-                o[1][0].refName2 = o[1][0].entity.substr(0, 1).toLowerCase() + o[1][0].entity.substr(1) + 's';
+                o[1][0].refName1 = o[1][0].refEntity.substring(0, 1).toLowerCase() + o[1][0].refEntity.substring(1);
+                o[1][0].refName2 = o[1][0].entity.substring(0, 1).toLowerCase() + o[1][0].entity.substring(1) + 's';
             }
         }
         this.relations = relArr;
@@ -321,6 +371,9 @@ abstract class BaseGenerator {
     genName(name: string, sp: string, st: number, stUpcase: number): string {
         let arrNames = [];
         if (sp) {
+            // if (name.indexOf(sp) === -1) {
+            //     throw new Error("The table name" + name + "should consist of ' " + sp + " ' .");
+            // }
             arrNames = name.split(sp);
             if (st > 0) {
                 arrNames.splice(0, st);
@@ -328,14 +381,23 @@ abstract class BaseGenerator {
         } else {
             arrNames = [name];
         }
-        //首字母大写
-        for (let i = stUpcase; i < arrNames.length; i++) {
-            arrNames[i] = arrNames[i].substr(0, 1).toUpperCase() + arrNames[i].substr(1).toLowerCase();
+        if (arrNames.length > 1) {
+            //首字母大写
+            for (let i = stUpcase; i < arrNames.length; i++) {
+                arrNames[i] = arrNames[i].substring(0, 1).toUpperCase() + arrNames[i].substring(1).toLowerCase();
+            }
+            // 保证字段名是小写开头的驼峰命名，oracle 
+            if (stUpcase > 0) {
+                arrNames[0] = arrNames[0].toLowerCase();
+            }
+        } else {
+            //驼峰命名时 小写第一个字母
+            let arrStr = [];
+            arrStr = arrNames[0].split("");
+            arrStr[0] = arrStr[0].toLowerCase();
+            arrNames[0] = arrStr.join("");
         }
-        // 保证字段名是小写开头的驼峰命名，oracle 
-        if (stUpcase > 0) {
-            arrNames[0] = arrNames[0].toLowerCase();
-        }
+
         return arrNames.join("");
     }
 
@@ -346,7 +408,7 @@ abstract class BaseGenerator {
      */
     getEntityByTbl(tblName: string): string {
         for (let o of this.tables) {
-            if (o[1] === tblName) {
+            if (o[1].toLowerCase() === tblName.toLowerCase()) {
                 return o[0];
             }
         }
@@ -383,7 +445,7 @@ abstract class BaseGenerator {
             if (column.type.indexOf(o) !== -1) {
                 co = this.typeMap[o];
                 let ind1: number = column.type.indexOf('(');
-                //针对char和varchar，如果带长度，则处理长度
+                //针对char和varchar，如果带长度，则处理长度，处理mysql/mariadb
                 if (ind1 > 0) {
                     let ind2 = column.type.indexOf(')');
                     if (ind2 > ind1 + 1) {
@@ -401,6 +463,20 @@ abstract class BaseGenerator {
             column.tsType = 'string';
             column.type = 'string';
         }
+    }
+    /**
+     * 查询是否既是外键也是主键
+     * @param column 
+     * @param relArr 
+     * @returns 
+     */
+    getRefRel(column: string, relArr: IColumn[]) {
+        for (let r of relArr) {
+            if (r.field == column && (r.isPri == true || r.isUnique == true)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
