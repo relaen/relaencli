@@ -1,6 +1,6 @@
 import { BaseGenerator } from "./basegenerator";
 import { MysqlGenerator } from "./dialect/mysqlgenerator";
-import { OracleGenerator } from "./dialect/oracleGenerator";
+import { OracleGenerator } from "./dialect/oraclegenerator";
 import { PostgresGennerator } from "./dialect/postgresgenerator";
 import { MssqlGenerator } from "./dialect/mssqlgenerator";
 import { SqliteGenerator } from "./dialect/sqlitegenerator";

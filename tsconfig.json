@@ -14,7 +14,6 @@
     "**/*.ts"
   ],
   "exclude": [
-    // "./index.ts"
     "./out"
   ]
 }

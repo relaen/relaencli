@@ -381,23 +381,14 @@ abstract class BaseGenerator {
         } else {
             arrNames = [name];
         }
-        if (arrNames.length > 1) {
-            //首字母大写
-            for (let i = stUpcase; i < arrNames.length; i++) {
-                arrNames[i] = arrNames[i].substring(0, 1).toUpperCase() + arrNames[i].substring(1).toLowerCase();
-            }
-            // 保证字段名是小写开头的驼峰命名，oracle 
-            if (stUpcase > 0) {
-                arrNames[0] = arrNames[0].toLowerCase();
-            }
-        } else {
-            //驼峰命名时 小写第一个字母
-            let arrStr = [];
-            arrStr = arrNames[0].split("");
-            arrStr[0] = arrStr[0].toLowerCase();
-            arrNames[0] = arrStr.join("");
+        //首字母大写
+        for (let i = stUpcase; i < arrNames.length; i++) {
+            arrNames[i] = arrNames[i].substring(0, 1).toUpperCase() + arrNames[i].substring(1).toLowerCase();
         }
-
+        // 保证字段名是小写开头的驼峰命名，oracle 
+        if (stUpcase > 0) {
+            arrNames[0] = arrNames[0].toLowerCase();
+        }
         return arrNames.join("");
     }
 
